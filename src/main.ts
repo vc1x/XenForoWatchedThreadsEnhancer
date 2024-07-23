@@ -95,7 +95,7 @@ const resizeThumbnails = () => {
   }
 
   container
-    .querySelectorAll('.structItem-iconContainer > a.DC_ThreadThumbnail_image')
+    .querySelectorAll('.structItem-iconContainer > a.dcThumbnail')
     .forEach((iconContainer) => {
       const width = GM_getValue('resize-width', '250');
       const height = GM_getValue('resize-height', '175');
@@ -288,7 +288,7 @@ if (isCached) {
     }
 
     container
-      .querySelectorAll('.structItem-iconContainer > a.DC_ThreadThumbnail_image')
+      .querySelectorAll('.structItem-iconContainer > a.dcThumbnail')
       .forEach((iconContainer) => {
         const container = iconContainer as HTMLAnchorElement;
 

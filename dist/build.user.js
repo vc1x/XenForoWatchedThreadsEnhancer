@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Watched Threads Enhancer
 // @namespace    https://github.com/IntoTheV
-// @version      1.0.4
+// @version      1.0.5
 // @author       vc1x
 // @description  Categorizes and adds search to watched threads.
 // @icon         https://simp4.jpg.church/simpcityIcon192.png
@@ -2842,7 +2842,7 @@
     if (!container) {
       return;
     }
-    container.querySelectorAll(".structItem-iconContainer > a.DC_ThreadThumbnail_image").forEach((iconContainer) => {
+    container.querySelectorAll(".structItem-iconContainer > a.dcThumbnail").forEach((iconContainer) => {
       const width = _GM_getValue("resize-width", "250");
       const height = _GM_getValue("resize-height", "175");
       const container2 = iconContainer;
@@ -2979,7 +2979,7 @@
       } else {
         _GM_setValue("t-resized", "0");
       }
-      container2.querySelectorAll(".structItem-iconContainer > a.DC_ThreadThumbnail_image").forEach((iconContainer) => {
+      container2.querySelectorAll(".structItem-iconContainer > a.dcThumbnail").forEach((iconContainer) => {
         const container3 = iconContainer;
         if (!container3.getAttribute("data-original-width")) {
           container3.setAttribute("data-original-width", "75px");
