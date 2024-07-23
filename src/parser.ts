@@ -28,9 +28,7 @@ const parseThreads = (el: Document | HTMLElement | HTMLBodyElement): WatchedThre
     const url = titleEl.href;
 
     const title = titleEl.textContent;
-    const labels = [...titleContainer.querySelectorAll('a:not(:last-child)')].map(
-      (a: Element) => (a.querySelector('span') as HTMLSpanElement).textContent,
-    );
+    const labels = [...titleContainer.querySelectorAll(".label")].map((s) => s.textContent);
 
     const author = (
       main.querySelector('.structItem-minor > .structItem-parts > li > a') as HTMLAnchorElement
@@ -48,7 +46,7 @@ const parseThreads = (el: Document | HTMLElement | HTMLBodyElement): WatchedThre
       .textContent as string;
 
     const lastReplyTimestamp = Number(
-      (latest.querySelector('.structItem-latestDate') as HTMLTimeElement).getAttribute('data-time'),
+      (latest.querySelector('.structItem-latestDate') as HTMLTimeElement).getAttribute('data-timestamp'),
     );
 
     const id = Number((/\d+(?=\/)/.exec(url) as RegExpExecArray)[0]);

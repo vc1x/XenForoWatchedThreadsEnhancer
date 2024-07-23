@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Watched Threads Enhancer
 // @namespace    https://github.com/IntoTheV
-// @version      1.0.3
-// @author       IntoTheV
+// @version      1.0.4
+// @author       vc1x
 // @description  Categorizes and adds search to watched threads.
 // @icon         https://simp4.jpg.church/simpcityIcon192.png
 // @supportURL   https://simpcity.su/threads/simpcity-watched-threads-enhancer.192026
@@ -28,6 +28,7 @@
     _GM_addStyle(
       `.tippy-box[data-theme~=transparent]{background-color:transparent}.tippy-box[data-theme~=transparent]>.tippy-arrow{width:14px;height:14px}.tippy-box[data-theme~=transparent][data-placement^=top]>.tippy-arrow:before{border-width:7px 7px 0;border-top-color:#3f3f3f}.tippy-box[data-theme~=transparent][data-placement^=bottom]>.tippy-arrow:before{border-width:1 7px 7px;border-bottom-color:#3f3f3f}.tippy-box[data-theme~=transparent][data-placement^=left]>.tippy-arrow:before{border-width:7px 0 7px 7px;border-left-color:#3f3f3f}.tippy-box[data-theme~=transparent][data-placement^=right]>.tippy-arrow:before{border-width:7px 7px 7px 0;border-right-color:#3f3f3f}.tippy-box[data-theme~=transparent]>.tippy-backdrop{background-color:transparent;}.tippy-box[data-theme~=transparent]>.tippy-svg-arrow{fill:gainsboro}`
     );
+    _GM_addStyle(".structItem { table-layout: auto !important; }");
   })();
   var top = "top";
   var bottom = "bottom";
@@ -2595,9 +2596,7 @@
       const titleEl = titleContainer.querySelector("a:last-child");
       const url = titleEl.href;
       const title = titleEl.textContent;
-      const labels = [...titleContainer.querySelectorAll("a:not(:last-child)")].map(
-        (a) => a.querySelector("span").textContent
-      );
+      const labels = [...titleContainer.querySelectorAll(".label")].map((s) => s.textContent);
       const author = main2.querySelector(".structItem-minor > .structItem-parts > li > a").textContent;
       const threadStartTimestamp = Number(
         main2.querySelector(
@@ -2607,7 +2606,7 @@
       const replies = meta.querySelector("dl > dd").textContent;
       const views = meta.querySelector("dl:nth-child(2) > dd").textContent;
       const lastReplyTimestamp = Number(
-        latest.querySelector(".structItem-latestDate").getAttribute("data-time")
+        latest.querySelector(".structItem-latestDate").getAttribute("data-timestamp")
       );
       const id = Number(/\d+(?=\/)/.exec(url)[0]);
       const now = /* @__PURE__ */ new Date();

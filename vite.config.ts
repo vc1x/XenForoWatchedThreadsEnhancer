@@ -10,9 +10,9 @@ export default defineConfig({
       entry: 'src/main.ts',
       userscript: {
         name: 'Watched Threads Enhancer',
-        version: '1.0.3',
+        version: '1.0.4',
         description: 'Categorizes and adds search to watched threads.',
-        author: 'IntoTheV',
+        author: 'vc1x',
         icon: 'https://simp4.jpg.church/simpcityIcon192.png',
         namespace: 'https://github.com/IntoTheV',
         match: ['https://*.simpcity.su/watched/threads*'],
