@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Watched Threads Enhancer
 // @namespace    https://github.com/IntoTheV
-// @version      1.0.5
+// @version      1.0.6
 // @author       vc1x
 // @description  Categorizes and adds search to watched threads.
 // @icon         https://simp4.jpg.church/simpcityIcon192.png
@@ -13,6 +13,7 @@
 // @grant        GM_getValue
 // @grant        GM_setClipboard
 // @grant        GM_setValue
+// @grant        GM_xmlhttpRequest
 // ==/UserScript==
 
 (t=>{if(typeof GM_addStyle=="function"){GM_addStyle(t);return}const o=document.createElement("style");o.textContent=t,document.head.append(o)})(' .structItem-pageJump a{padding:2px 8px!important;border-radius:1px!important}.hvr-grow-shadow{-webkit-transform:perspective(1px) translateZ(0);transform:perspective(1px) translateZ(0);box-shadow:0 0 1px #0000;-webkit-transition-duration:.3s;transition-duration:.3s;-webkit-transition-property:box-shadow,transform;transition-property:box-shadow,transform}.hvr-grow-shadow:hover,.hvr-grow-shadow:focus,.hvr-grow-shadow:active{box-shadow:0 10px 10px -10px #00000080;-webkit-transform:scale(1.1);transform:scale(1.1)}.hvr-underline-from-left{-webkit-transform:perspective(1px) translateZ(0);transform:perspective(1px) translateZ(0);box-shadow:0 0 1px #0000;position:relative;overflow:hidden}.hvr-underline-from-left:before{content:"";position:absolute;z-index:-1;left:0;right:100%;bottom:0;background:#3db7c7;height:2px;-webkit-transition-property:right;transition-property:right;-webkit-transition-duration:.3s;transition-duration:.3s;-webkit-transition-timing-function:ease-out;transition-timing-function:ease-out}.hvr-underline-from-left:hover:before,.hvr-underline-from-left:focus:before,.hvr-underline-from-left:active:before{right:0}.tippy-box[data-animation=fade][data-state=hidden]{opacity:0}[data-tippy-root]{max-width:calc(100vw - 10px)}.tippy-box{position:relative;background-color:#333;color:#fff;border-radius:4px;font-size:14px;line-height:1.4;white-space:normal;outline:0;transition-property:transform,visibility,opacity}.tippy-box[data-placement^=top]>.tippy-arrow{bottom:0}.tippy-box[data-placement^=top]>.tippy-arrow:before{bottom:-7px;left:0;border-width:8px 8px 0;border-top-color:initial;transform-origin:center top}.tippy-box[data-placement^=bottom]>.tippy-arrow{top:0}.tippy-box[data-placement^=bottom]>.tippy-arrow:before{top:-7px;left:0;border-width:0 8px 8px;border-bottom-color:initial;transform-origin:center bottom}.tippy-box[data-placement^=left]>.tippy-arrow{right:0}.tippy-box[data-placement^=left]>.tippy-arrow:before{border-width:8px 0 8px 8px;border-left-color:initial;right:-7px;transform-origin:center left}.tippy-box[data-placement^=right]>.tippy-arrow{left:0}.tippy-box[data-placement^=right]>.tippy-arrow:before{left:-7px;border-width:8px 8px 8px 0;border-right-color:initial;transform-origin:center right}.tippy-box[data-inertia][data-state=visible]{transition-timing-function:cubic-bezier(.54,1.5,.38,1.11)}.tippy-arrow{width:16px;height:16px;color:#333}.tippy-arrow:before{content:"";position:absolute;border-color:transparent;border-style:solid}.tippy-content{position:relative;padding:5px 9px;z-index:1} ');
@@ -24,6 +25,7 @@
   var _GM_getValue = /* @__PURE__ */ (() => typeof GM_getValue != "undefined" ? GM_getValue : void 0)();
   var _GM_setClipboard = /* @__PURE__ */ (() => typeof GM_setClipboard != "undefined" ? GM_setClipboard : void 0)();
   var _GM_setValue = /* @__PURE__ */ (() => typeof GM_setValue != "undefined" ? GM_setValue : void 0)();
+  var _GM_xmlhttpRequest = /* @__PURE__ */ (() => typeof GM_xmlhttpRequest != "undefined" ? GM_xmlhttpRequest : void 0)();
   (() => {
     _GM_addStyle(
       `.tippy-box[data-theme~=transparent]{background-color:transparent}.tippy-box[data-theme~=transparent]>.tippy-arrow{width:14px;height:14px}.tippy-box[data-theme~=transparent][data-placement^=top]>.tippy-arrow:before{border-width:7px 7px 0;border-top-color:#3f3f3f}.tippy-box[data-theme~=transparent][data-placement^=bottom]>.tippy-arrow:before{border-width:1 7px 7px;border-bottom-color:#3f3f3f}.tippy-box[data-theme~=transparent][data-placement^=left]>.tippy-arrow:before{border-width:7px 0 7px 7px;border-left-color:#3f3f3f}.tippy-box[data-theme~=transparent][data-placement^=right]>.tippy-arrow:before{border-width:7px 7px 7px 0;border-right-color:#3f3f3f}.tippy-box[data-theme~=transparent]>.tippy-backdrop{background-color:transparent;}.tippy-box[data-theme~=transparent]>.tippy-svg-arrow{fill:gainsboro}`
@@ -2720,6 +2722,16 @@
     }
     return false;
   };
+  const addUnwatchOption = () => {
+    const selectEl = document.querySelector(".block-footer-controls > select");
+    if (!selectEl) {
+      return;
+    }
+    const unwatchOptionEl = document.createElement("option");
+    unwatchOptionEl.textContent = "Stop Watching";
+    unwatchOptionEl.value = "unwatch";
+    selectEl.appendChild(unwatchOptionEl);
+  };
   const addButton = (text, addMargin, onClick) => {
     const container = document.querySelector(".pageNav");
     if (!container) {
@@ -2787,6 +2799,58 @@
   };
   ensureButtonsContainerExist();
   stylizeBlockContainer();
+  addUnwatchOption();
+  const btnGo = document.querySelector('.block-footer-controls button[type="submit"]');
+  btnGo == null ? void 0 : btnGo.addEventListener("click", async (e) => {
+    const checkedOption = document.querySelector(".block-footer-controls select > option:checked");
+    if (checkedOption && checkedOption.value !== "unwatch") {
+      return;
+    }
+    e.preventDefault();
+    const selectedThreads = [...document.querySelectorAll('input[name^="thread_ids[]"]')].filter((i) => i.checked).map((i) => {
+      var _a;
+      const threadEl = i.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement;
+      const href = (_a = i.parentElement.parentElement.parentElement.parentElement.parentElement.querySelector(
+        ".structItem-title"
+      )) == null ? void 0 : _a.querySelector("a").href.replace(/\/unread.*/i, "");
+      return { href, threadEl };
+    });
+    if (!selectedThreads.length) {
+      return;
+    }
+    let unwatched = 0;
+    await new Promise(async (resolve) => {
+      for (const t of selectedThreads) {
+        const formData = new FormData();
+        formData.append("stop", "1");
+        formData.append("_xfWithData", "1");
+        formData.append("_xfRequestUri", t.href);
+        formData.append("_xfResponseType", "json");
+        formData.append(
+          "_xfToken",
+          document.querySelector("html").getAttribute("data-csrf")
+        );
+        await new Promise((r) => {
+          _GM_xmlhttpRequest({
+            url: `${t.href}/watch`,
+            method: "POST",
+            data: formData,
+            onload: (response) => {
+              r(true);
+              if (response && response.status === 200) {
+                unwatched++;
+                console.log(`Unwatched ${t.href}`);
+              }
+            }
+          });
+        });
+      }
+      resolve(true);
+    });
+    if (unwatched > 0) {
+      window.location.reload();
+    }
+  });
   let queriedThreads = [];
   let btnCopyThreads = null;
   let btnExportThreads = null;

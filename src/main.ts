@@ -1,6 +1,8 @@
 import '@/assets/app.scss';
 import '@/init';
 
+import { log } from 'console';
+
 import { cacheThreads } from '@/cache';
 import { createTooltip, strToNumber, writeTextToFile } from '@/helpers';
 import { WatchedThread } from '@/types';
@@ -10,6 +12,7 @@ import {
   addLabelTabsContainer,
   addSearchInput,
   addTab,
+  addUnwatchOption,
   clearTabs,
   createInput,
   ensureButtonsContainerExist,
@@ -17,10 +20,79 @@ import {
   stylizeBlockContainer,
   updateButtonText,
 } from '@/ui';
-import { GM_getValue, GM_setClipboard, GM_setValue } from '$';
+import { GM_getValue, GM_setClipboard, GM_setValue, GM_xmlhttpRequest } from '$';
 
 ensureButtonsContainerExist();
 stylizeBlockContainer();
+addUnwatchOption();
+
+const btnGo = document.querySelector('.block-footer-controls button[type="submit"]');
+
+btnGo?.addEventListener('click', async (e) => {
+  const checkedOption = document.querySelector('.block-footer-controls select > option:checked');
+
+  if (checkedOption && (checkedOption as HTMLOptionElement).value !== 'unwatch') {
+    return;
+  }
+
+  e.preventDefault();
+
+  const selectedThreads = [...document.querySelectorAll('input[name^="thread_ids[]"]')]
+    .filter((i) => (i as HTMLInputElement).checked)
+    .map((i) => {
+      const threadEl = i.parentElement!.parentElement!.parentElement!.parentElement!.parentElement!
+        .parentElement!.parentElement as HTMLDivElement;
+      const href = i
+        .parentElement!.parentElement!.parentElement!.parentElement!.parentElement!.querySelector(
+          '.structItem-title',
+        )
+        ?.querySelector('a')!
+        .href.replace(/\/unread.*/i, '') as string;
+
+      return { href, threadEl };
+    });
+
+  if (!selectedThreads.length) {
+    return;
+  }
+
+  let unwatched = 0;
+
+  // eslint-disable-next-line no-async-promise-executor
+  await new Promise(async (resolve) => {
+    for (const t of selectedThreads) {
+      const formData = new FormData();
+      formData.append('stop', '1');
+      formData.append('_xfWithData', '1');
+      formData.append('_xfRequestUri', t.href);
+      formData.append('_xfResponseType', 'json');
+      formData.append(
+        '_xfToken',
+        document.querySelector('html')!.getAttribute('data-csrf') as string,
+      );
+
+      await new Promise((r) => {
+        GM_xmlhttpRequest({
+          url: `${t.href}/watch`,
+          method: 'POST',
+          data: formData,
+          onload: (response) => {
+            r(true);
+            if (response && response.status === 200) {
+              unwatched++;
+              console.log(`Unwatched ${t.href}`);
+            }
+          },
+        });
+      });
+    }
+    resolve(true);
+  });
+
+  if (unwatched > 0) {
+    window.location.reload();
+  }
+});
 
 let queriedThreads: WatchedThread[] = [];
 let btnCopyThreads: null | HTMLAnchorElement = null;

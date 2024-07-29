@@ -98,6 +98,19 @@ const activateTab = (label: string) => {
   return false;
 };
 
+const addUnwatchOption = () => {
+  const selectEl = document.querySelector('.block-footer-controls > select');
+  if (!selectEl) {
+    return;
+  }
+
+  const unwatchOptionEl = document.createElement('option');
+  unwatchOptionEl.textContent = 'Stop Watching';
+  unwatchOptionEl.value = 'unwatch';
+
+  selectEl.appendChild(unwatchOptionEl);
+};
+
 const addButton = (
   text: string,
   addMargin: boolean,
@@ -191,6 +204,7 @@ export {
   addLabelTabsContainer,
   addSearchInput,
   addTab,
+  addUnwatchOption,
   clearTabs,
   createInput,
   ensureButtonsContainerExist,
